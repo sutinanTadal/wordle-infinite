@@ -1,27 +1,56 @@
 class WordleGame {
     constructor() {
-        this.words = [
-            'APPLE', 'BRAVE', 'CHAIR', 'DANCE', 'EAGLE', 'FLAME', 'GRAPE', 'HOUSE', 'IMAGE', 'JUMPS',
-            'KNIFE', 'LIGHT', 'MONEY', 'NIGHT', 'OCEAN', 'PIANO', 'QUIET', 'RADIO', 'SNAKE', 'TABLE',
-            'UNDER', 'VOICE', 'WATER', 'YOUNG', 'ZEBRA', 'BEACH', 'CLOUD', 'DREAM', 'EARTH', 'FRESH',
-            'GLASS', 'HAPPY', 'JUNGLE', 'LEARN', 'MAGIC', 'NOVEL', 'PLANT', 'QUEEN', 'RIVER', 'SMILE',
-            'TRUST', 'VALUE', 'WORLD', 'YOUTH', 'ZEBRA', 'ALBUM', 'BREAD', 'CREAM', 'DRIVE', 'ENTER',
-            'FIELD', 'GHOST', 'HORSE', 'INDEX', 'JEWEL', 'KINGS', 'LEMON', 'MOUSE', 'NURSE', 'OFFER'
-        ];
-        this.currentWord = this.getRandomWord();
+        this.answerWords = [];
+        this.validWords = new Set();
+        this.currentWord = '';
         this.currentRow = 0;
         this.currentCol = 0;
         this.gameBoard = [];
         this.gameOver = false;
         this.won = false;
         
-        this.initializeBoard();
-        this.setupEventListeners();
-        this.showMessage('Start guessing! Type a 5-letter word.');
+        this.loadWords().then(() => {
+            this.currentWord = this.getRandomWord();
+            this.initializeBoard();
+            this.setupEventListeners();
+            this.showMessage('Start guessing! Type a 5-letter word.');
+            console.log('Current word:', this.currentWord);
+        });
+    }
+    
+    async loadWords() {
+        try {
+            // Load answer words from answer.txt
+            const answerResponse = await fetch('answer.txt');
+            const answerText = await answerResponse.text();
+            this.answerWords = answerText.split('\n')
+                .map(word => word.trim().toUpperCase())
+                .filter(word => word.length === 5);
+            
+            // Load valid words from words.txt
+            const wordsResponse = await fetch('words.txt');
+            const wordsText = await wordsResponse.text();
+            const allWords = wordsText.split('\n')
+                .map(word => word.trim().toUpperCase())
+                .filter(word => word.length === 5);
+            
+            // Create a Set for fast lookup
+            this.validWords = new Set(allWords);
+            
+            console.log(`Loaded ${this.answerWords.length} answer words and ${this.validWords.size} valid words`);
+        } catch (error) {
+            console.error('Error loading word files:', error);
+            // Fallback to original words if files can't be loaded
+            this.answerWords = [
+                'APPLE', 'BRAVE', 'CHAIR', 'DANCE', 'EAGLE', 'FLAME', 'GRAPE', 'HOUSE', 'IMAGE', 'JUMPS',
+                'KNIFE', 'LIGHT', 'MONEY', 'NIGHT', 'OCEAN', 'PIANO', 'QUIET', 'RADIO', 'SNAKE', 'TABLE'
+            ];
+            this.validWords = new Set(this.answerWords);
+        }
     }
     
     getRandomWord() {
-        return this.words[Math.floor(Math.random() * this.words.length)];
+        return this.answerWords[Math.floor(Math.random() * this.answerWords.length)];
     }
     
     initializeBoard() {
@@ -132,7 +161,7 @@ class WordleGame {
     }
     
     isValidWord(word) {
-        return this.words.includes(word) || word.length === 5;
+        return this.validWords.has(word.toUpperCase());
     }
     
     checkGuess(guess) {
