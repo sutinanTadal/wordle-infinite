@@ -141,6 +141,7 @@ class WordleGame {
         
         if (!this.isValidWord(guess)) {
             this.showMessage('Not a valid word!', 'error');
+            this.shakeRow(this.currentRow);
             return;
         }
         
@@ -162,6 +163,15 @@ class WordleGame {
     
     isValidWord(word) {
         return this.validWords.has(word.toUpperCase());
+    }
+    
+    shakeRow(rowIndex) {
+        const rowElement = document.querySelector(`#game-board .row:nth-child(${rowIndex + 1})`);
+        rowElement.classList.add('invalid');
+        
+        setTimeout(() => {
+            rowElement.classList.remove('invalid');
+        }, 500);
     }
     
     checkGuess(guess) {
