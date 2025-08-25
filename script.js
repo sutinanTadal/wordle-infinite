@@ -38,12 +38,23 @@ class WordleGame {
             this.validWords = new Set(allWords);
             
             console.log(`Loaded ${this.answerWords.length} answer words and ${this.validWords.size} valid words`);
+            
+            // Debug: check if OFFER is in the loaded words
+            console.log('OFFER in validWords:', this.validWords.has('OFFER'));
+            console.log('First 10 answer words:', this.answerWords.slice(0, 10));
+            console.log('First 10 valid words:', Array.from(this.validWords).slice(0, 10));
         } catch (error) {
             console.error('Error loading word files:', error);
+            // Show error message to user on mobile where console isn't visible
+            this.showMessage('Loading word files failed - using limited word set', 'error');
+            
             // Fallback to original words if files can't be loaded
             this.answerWords = [
                 'APPLE', 'BRAVE', 'CHAIR', 'DANCE', 'EAGLE', 'FLAME', 'GRAPE', 'HOUSE', 'IMAGE', 'JUMPS',
-                'KNIFE', 'LIGHT', 'MONEY', 'NIGHT', 'OCEAN', 'PIANO', 'QUIET', 'RADIO', 'SNAKE', 'TABLE'
+                'KNIFE', 'LIGHT', 'MONEY', 'NIGHT', 'OCEAN', 'PIANO', 'QUIET', 'RADIO', 'SNAKE', 'TABLE',
+                'OFFER', 'WORLD', 'SPACE', 'PEACE', 'MAGIC', 'POWER', 'FIELD', 'GHOST', 'HORSE', 'JEWEL',
+                'SOUND', 'ROUND', 'POUND', 'FOUND', 'BOUND', 'SWORD', 'BOARD', 'BREAD', 'DREAM', 'CREAM',
+                'STEAM', 'LEARN', 'EARTH', 'HEART', 'START', 'SMART', 'PARTY', 'HAPPY', 'LUCKY', 'FUNNY'
             ];
             this.validWords = new Set(this.answerWords);
         }
@@ -162,16 +173,33 @@ class WordleGame {
     }
     
     isValidWord(word) {
-        return this.validWords.has(word.toUpperCase());
+        const upperWord = word.toUpperCase();
+        const isValid = this.validWords.has(upperWord);
+        
+        // Show debug info on screen for mobile users
+        if (!isValid) {
+            console.log(`Invalid word: "${upperWord}" (${this.validWords.size} words loaded)`);
+        }
+        
+        return isValid;
     }
     
     shakeRow(rowIndex) {
-        const rowElement = document.querySelector(`#game-board .row:nth-child(${rowIndex + 1})`);
-        rowElement.classList.add('invalid');
+        const gameBoard = document.getElementById('game-board');
+        const rowElements = gameBoard.querySelectorAll('.row');
+        const rowElement = rowElements[rowIndex];
         
-        setTimeout(() => {
-            rowElement.classList.remove('invalid');
-        }, 500);
+        console.log(`Shaking row ${rowIndex}`, rowElement);
+        
+        if (rowElement) {
+            rowElement.classList.add('invalid');
+            
+            setTimeout(() => {
+                rowElement.classList.remove('invalid');
+            }, 500);
+        } else {
+            console.error(`Could not find row element at index ${rowIndex}`);
+        }
     }
     
     checkGuess(guess) {
